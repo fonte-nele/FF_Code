@@ -1,0 +1,21 @@
+package parse;
+
+terminal String LITBOOL;
+terminal String LITINT;
+terminal String LITSTRING;
+terminal String ID;
+terminal        ASSIGN;
+terminal        PLUS, MINUS, TIMES, DIV, MOD, UMINUS;
+terminal        EQ, NE, LT, LE, GT, GE;
+terminal        AND, OR;
+terminal        LPAREN, RPAREN, COMMA;
+terminal        BOOL, INT, STRING;
+terminal        IF, THEN, ELSE;
+terminal        WHILE, DO;
+terminal        LET, IN;
+
+non terminal program;
+
+start with program;
+
+program ::= ;
