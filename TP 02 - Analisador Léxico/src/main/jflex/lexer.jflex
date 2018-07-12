@@ -50,7 +50,7 @@ import java_cup.runtime.ComplexSymbolFactory;
 
    private java_cup.runtime.Symbol tok(int type, Object value, Location left, Location right) {
       return complexSymbolFactory.newSymbol(yytext(), type, left, right, value);
-    }
+   }
 
    private Symbol tok(int type, String lexeme, Object value) {
       return complexSymbolFactory.newSymbol(lexeme, type, locLeft(), locRight(), value);
@@ -82,19 +82,19 @@ import java_cup.runtime.ComplexSymbolFactory;
 %state COMMENT
 %state STR
 
-litint    = [0-9]+
-id        = [a-zA-Z][a-zA-Z0-9_]*
+fint    = [0-9]+
+id      = [a-zA-Z][a-zA-Z0-9_]*
 
 %%
 
 <YYINITIAL>{
 [ \t\f\n\r]+ { /* skip */ }
-"#" .*       { /* skip */ }
-"{#"         { yybegin(COMMENT); commentLevel = 1; }
+"$" .*       { /* skip */ }
+"/$"         { yybegin(COMMENT); commentLevel = 1; }
 
-true         { return tok(LITBOOL, true); }
-false        { return tok(LITBOOL, false); }
-{litint}     { return tok(LITINT, yytext()); }
+true         { return tok(FBOOL, true); }
+false        { return tok(FBOOL, false); }
+{fint}       { return tok(FINT, yytext()); }
 \"           { builder.setLength(0); strLeft = locLeft(); yybegin(STR); }
 
 bool         { return tok(BOOL); }
@@ -110,35 +110,34 @@ in           { return tok(IN); }
 
 {id}         { return tok(ID, yytext().intern()); }
 
-":="         { return tok(ASSIGN); }
+"=="         { return tok(ASSIGN); }
 "+"          { return tok(PLUS); }
 "-"          { return tok(MINUS); }
 "*"          { return tok(TIMES); }
 "/"          { return tok(DIV); }
 "%"          { return tok(MOD); }
 "="          { return tok(EQ); }
-"<>"         { return tok(NE); }
+"!="         { return tok(NE); }
 "<"          { return tok(LT); }
 "<="         { return tok(LE); }
 ">"          { return tok(GT); }
 ">="         { return tok(GE); }
-"&&"         { return tok(AND); }
-"||"         { return tok(OR); }
-"&&"         { return tok(AND); }
+"&"          { return tok(AND); }
+"|"          { return tok(OR); }
 "("          { return tok(LPAREN); }
 ")"          { return tok(RPAREN); }
 ","          { return tok(COMMA); }
 }
 
 <COMMENT>{
-"{#"         { ++commentLevel; }
-"#}"         { if (--commentLevel == 0) yybegin(YYINITIAL); }
+"/$"         { ++commentLevel; }
+"$/"         { if (--commentLevel == 0) yybegin(YYINITIAL); }
 [^]          { }
 <<EOF>>      { yybegin(YYINITIAL); error("unclosed comment"); }
 }
 
 <STR>{
-\"           { yybegin(YYINITIAL); return tok(LITSTRING, builder.toString(), strLeft, locRight()); }
+\"           { yybegin(YYINITIAL); return tok(FSTRING, builder.toString(), strLeft, locRight()); }
 \\ b         { builder.append('\b'); }
 \\ t         { builder.append('\t'); }
 \\ n         { builder.append('\n'); }

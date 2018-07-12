@@ -1,8 +1,8 @@
 package parse;
 
-terminal String LITBOOL;
-terminal String LITINT;
-terminal String LITSTRING;
+terminal String FBOOL;
+terminal String FINT;
+terminal String FSTRING;
 terminal String ID;
 terminal        ASSIGN;
 terminal        PLUS, MINUS, TIMES, DIV, MOD, UMINUS;

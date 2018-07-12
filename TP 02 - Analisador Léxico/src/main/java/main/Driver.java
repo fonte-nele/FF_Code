@@ -55,19 +55,18 @@ public class Driver {
       try {
          // set the input (source code) to compile
          if (options.parameters.isEmpty()) {
-            System.out.println("Sem parametros");
+            System.out.println("Sem parametros, pode digitar o que deseja fazer a analise lexica");
             name = "unknown";
             input = new InputStreamReader(System.in);
          }
          else {
-            System.out.println("Lendo arquivo");
+            System.out.println("Lendo arquivo...");
             name = options.parameters.get(0);
             input = new FileReader(name);
          }
 
          // do only lexical analyses
          if (options.lexer) {
-            System.out.println("Aquii");
             lexicalAnalysis(name, input);
          }
       }
@@ -105,5 +104,4 @@ public class Driver {
          System.out.println(Terminals.dumpTerminal(tok));
       } while (tok.sym != Terminals.EOF);
    }
-
 }

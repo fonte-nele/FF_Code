@@ -9,7 +9,6 @@ package parse;
 public interface SymbolConstants {
   /* terminals */
   public static final int TIMES = 9;
-  public static final int LITBOOL = 2;
   public static final int MOD = 11;
   public static final int AND = 19;
   public static final int LT = 15;
@@ -28,10 +27,11 @@ public interface SymbolConstants {
   public static final int ID = 5;
   public static final int LE = 16;
   public static final int DO = 31;
+  public static final int FSTRING = 4;
   public static final int STRING = 26;
   public static final int COMMA = 23;
+  public static final int FINT = 3;
   public static final int EOF = 0;
-  public static final int LITSTRING = 4;
   public static final int DIV = 10;
   public static final int GE = 18;
   public static final int MINUS = 8;
@@ -40,14 +40,14 @@ public interface SymbolConstants {
   public static final int ASSIGN = 6;
   public static final int EQ = 13;
   public static final int BOOL = 24;
-  public static final int LITINT = 3;
   public static final int UMINUS = 12;
+  public static final int FBOOL = 2;
   public static final String[] terminalNames = new String[] {
   "EOF",
   "error",
-  "LITBOOL",
-  "LITINT",
-  "LITSTRING",
+  "FBOOL",
+  "FINT",
+  "FSTRING",
   "ID",
   "ASSIGN",
   "PLUS",

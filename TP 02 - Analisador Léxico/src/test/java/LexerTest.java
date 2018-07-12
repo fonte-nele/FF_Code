@@ -53,64 +53,63 @@ public class LexerTest {
       // whitespaces
       trun("    \t\n\n\n\t\r\n\r\n  ", "6:3-6:3 EOF");
 
-      // comments
-      trun("# a line comment\n", "2:1-2:1 EOF");
-      trun("#a line comment\n", "2:1-2:1 EOF");
-      trun("# a line comment", "1:17-1:17 EOF");
-      trun("{# a block comment #}", "1:22-1:22 EOF");
-      trun("{# a\nmultiline\ncomment #}", "3:11-3:11 EOF");
-      trun("{# begin ### end #}", "1:20-1:20 EOF");
-      trun("{# begin #### end #}", "1:21-1:21 EOF");
-      trun("{# begin ####}", "1:15-1:15 EOF");
-      trun("{# begin #####}", "1:16-1:16 EOF");
-      trun("{# outer {# inner #} outer #}", "1:30-1:30 EOF");
-      erun("{# a {# ab {# abc #} ba", "1:24-1:24 lexical error: unclosed comment");
+      // comentario
+      trun("$ uma linha de comentario\n", "2:1-2:1 EOF");
+      trun("$uma linha de comentario\n", "2:1-2:1 EOF");
+      trun("$ uma linha de comentario", "1:26-1:26 EOF");
+      trun("/$ a block comment $/", "1:22-1:22 EOF");
+      trun("/$ a\nmultiline\ncomment $/", "3:11-3:11 EOF");
+      trun("/$ begin $$$ end $/", "1:20-1:20 EOF");
+      trun("/$ begin $$$$ end $/", "1:21-1:21 EOF");
+      trun("/$ begin $$$$/", "1:15-1:15 EOF");
+      trun("/$ outer /$ inner $/ outer $/", "1:30-1:30 EOF");
+      erun("/$ a /$ ab /$ abc $/ ba", "1:24-1:24 lexical error: unclosed comment");
 
-      // punctuation
-      trun(":=", "1:1-1:3 ASSIGN", "1:3-1:3 EOF");
+      // pontuacao
+      trun("==", "1:1-1:3 ASSIGN", "1:3-1:3 EOF");
       trun("=", "1:1-1:2 EQ", "1:2-1:2 EOF");
       trun("(", "1:1-1:2 LPAREN", "1:2-1:2 EOF");
       trun(")", "1:1-1:2 RPAREN", "1:2-1:2 EOF");
       trun(",", "1:1-1:2 COMMA", "1:2-1:2 EOF");
 
-      // operators
+      // operadores
       trun("+", "1:1-1:2 PLUS", "1:2-1:2 EOF");
       trun("-", "1:1-1:2 MINUS", "1:2-1:2 EOF");
       trun("*", "1:1-1:2 TIMES", "1:2-1:2 EOF");
       trun("/", "1:1-1:2 DIV", "1:2-1:2 EOF");
       trun("%", "1:1-1:2 MOD", "1:2-1:2 EOF");
-      trun("<>", "1:1-1:3 NE", "1:3-1:3 EOF");
+      trun("!=", "1:1-1:3 NE", "1:3-1:3 EOF");
       trun("<", "1:1-1:2 LT", "1:2-1:2 EOF");
       trun("<=", "1:1-1:3 LE", "1:3-1:3 EOF");
       trun(">", "1:1-1:2 GT", "1:2-1:2 EOF");
-      trun("&&", "1:1-1:3 AND", "1:3-1:3 EOF");
-      trun("||", "1:1-1:3 OR", "1:3-1:3 EOF");
+      trun("&", "1:1-1:2 AND", "1:2-1:2 EOF");
+      trun("|", "1:1-1:2 OR", "1:2-1:2 EOF");
 
-      // boolean literals
-      trun("true", "1:1-1:5 LITBOOL(true)", "1:5-1:5 EOF");
-      trun("false", "1:1-1:6 LITBOOL(false)", "1:6-1:6 EOF");
+      // booleano
+      trun("true", "1:1-1:5 FBOOL(true)", "1:5-1:5 EOF");
+      trun("false", "1:1-1:6 FBOOL(false)", "1:6-1:6 EOF");
 
       // integer literals
-      trun("26342", "1:1-1:6 LITINT(26342)", "1:6-1:6 EOF");
-      trun("0", "1:1-1:2 LITINT(0)", "1:2-1:2 EOF");
-      //trun("+75"    , "1:1-1:4 LITINT(75)"    , "1:4-1:4 EOF");
-      //trun("-75"    , "1:1-1:4 LITINT(-75)"   , "1:4-1:4 EOF");
+      trun("26342", "1:1-1:6 FINT(26342)", "1:6-1:6 EOF");
+      trun("0", "1:1-1:2 FINT(0)", "1:2-1:2 EOF");
+      //trun("+75"    , "1:1-1:4 FINT(75)"    , "1:4-1:4 EOF");
+      //trun("-75"    , "1:1-1:4 FINT(-75)"   , "1:4-1:4 EOF");
 
       // string literals
-      trun("\"A\"", "1:1-1:4 LITSTRING(A)", "1:4-1:4 EOF");
-      trun("\"b\"", "1:1-1:4 LITSTRING(b)", "1:4-1:4 EOF");
-      trun("\"*\"", "1:1-1:4 LITSTRING(*)", "1:4-1:4 EOF");
-      trun("\" \"", "1:1-1:4 LITSTRING( )", "1:4-1:4 EOF");
-      trun("\"\t\"", "1:1-1:4 LITSTRING(\t)", "1:4-1:4 EOF");
-      trun("\"\\b\"", "1:1-1:5 LITSTRING(\b)", "1:5-1:5 EOF");
-      trun("\"\\t\"", "1:1-1:5 LITSTRING(\t)", "1:5-1:5 EOF");
-      trun("\"\\n\"", "1:1-1:5 LITSTRING(\n)", "1:5-1:5 EOF");
-      trun("\"\\r\"", "1:1-1:5 LITSTRING(\r)", "1:5-1:5 EOF");
-      trun("\"\\f\"", "1:1-1:5 LITSTRING(\f)", "1:5-1:5 EOF");
-      trun("\"\\\"\"", "1:1-1:5 LITSTRING(\")", "1:5-1:5 EOF");
-      trun("\"\\065\"", "1:1-1:7 LITSTRING(A)", "1:7-1:7 EOF");
+      trun("\"A\"", "1:1-1:4 FSTRING(A)", "1:4-1:4 EOF");
+      trun("\"b\"", "1:1-1:4 FSTRING(b)", "1:4-1:4 EOF");
+      trun("\"*\"", "1:1-1:4 FSTRING(*)", "1:4-1:4 EOF");
+      trun("\" \"", "1:1-1:4 FSTRING( )", "1:4-1:4 EOF");
+      trun("\"\t\"", "1:1-1:4 FSTRING(\t)", "1:4-1:4 EOF");
+      trun("\"\\b\"", "1:1-1:5 FSTRING(\b)", "1:5-1:5 EOF");
+      trun("\"\\t\"", "1:1-1:5 FSTRING(\t)", "1:5-1:5 EOF");
+      trun("\"\\n\"", "1:1-1:5 FSTRING(\n)", "1:5-1:5 EOF");
+      trun("\"\\r\"", "1:1-1:5 FSTRING(\r)", "1:5-1:5 EOF");
+      trun("\"\\f\"", "1:1-1:5 FSTRING(\f)", "1:5-1:5 EOF");
+      trun("\"\\\"\"", "1:1-1:5 FSTRING(\")", "1:5-1:5 EOF");
+      trun("\"\\065\"", "1:1-1:7 FSTRING(A)", "1:7-1:7 EOF");
       erun("\"\\x\"", "1:2-1:4 lexical error: invalid escape sequence in string literal");
-      trun("\"ABC\"", "1:1-1:6 LITSTRING(ABC)", "1:6-1:6 EOF");
+      trun("\"ABC\"", "1:1-1:6 FSTRING(ABC)", "1:6-1:6 EOF");
       erun("\"\n\"", "1:2-1:3 lexical error: invalid newline in string literal");
 
       // keywords
@@ -131,8 +130,7 @@ public class LexerTest {
       trun("with_underscore", "1:1-1:16 ID(with_underscore)", "1:16-1:16 EOF");
       trun("A1b2C33", "1:1-1:8 ID(A1b2C33)", "1:8-1:8 EOF");
       trun("set+", "1:1-1:4 ID(set)", "1:4-1:5 PLUS", "1:5-1:5 EOF");
-      trun("45let", "1:1-1:3 LITINT(45)", "1:3-1:6 LET", "1:6-1:6 EOF");
+      trun("45let", "1:1-1:3 FINT(45)", "1:3-1:6 LET", "1:6-1:6 EOF");
       erun("_invalid", "1:1-1:2 lexical error: invalid character '_'");
    }
-
 }
