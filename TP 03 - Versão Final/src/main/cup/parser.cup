@@ -1,0 +1,148 @@
+package parse;
+
+import error.ErrorHelper;
+import java_cup.runtime.Symbol;
+import java_cup.runtime.ComplexSymbolFactory.ComplexSymbol;
+import javaslang.collection.List;
+import absyn.*;
+
+parser code {:
+  public Parser(Lexer lex) {
+     this(lex, lex.getSymbolFactory());
+  }
+
+  private Loc loc(Location left, Location right) {
+     return Loc.loc(left, right);
+  }
+
+  /* override error routines */
+  private Loc locOfInfo(Object info) {
+     return info instanceof ComplexSymbol ?
+               Loc.loc((ComplexSymbol) info) :
+               info instanceof Symbol ?
+                  Loc.loc((Symbol) info) :
+                  Loc.loc(cur_token);
+  }
+  private String lexemeOfInfo(Object info) {
+     return info instanceof ComplexSymbol ?
+               " at '" + ((ComplexSymbol) info).getName() + "'" :
+               "";
+
+  }
+  public void report_fatal_error(String message, Object info) {
+     done_parsing();
+     throw ErrorHelper.error(locOfInfo(info), "%s%s%nCan't recover from previous error(s), giving up.", message, lexemeOfInfo(info));
+  }
+  public void report_error(String message, Object info) {
+     throw ErrorHelper.error(locOfInfo(info), "%s%s", message, lexemeOfInfo(info));
+  }
+:};
+
+
+terminal String FBOOL;
+terminal String FINT;
+terminal String FREAL;
+terminal String FSTRING;
+terminal String ID;
+terminal        ASSIGN;
+terminal        PLUS, MINUS, TIMES, DIV, MOD, UMINUS;
+terminal        EQ, NE, LT, LE, GT, GE;
+terminal        AND, OR;
+terminal        LPAREN, RPAREN, COMMA;
+terminal        VOID, BOOL, INT, REAL, STRING;
+terminal        IF, THEN, ELSE;
+terminal        WHILE, DO;
+terminal        LET, IN, FPRINT, IMPORT, IOFF;
+
+non terminal Program program;
+non terminal Exp exp;
+non terminal List<Exp> exps, expsRest;
+non terminal TypeName typename;
+non terminal TypeId typeid;
+non terminal List<TypeId> typeids, typeidsRest;
+non terminal Fun fun;
+non terminal List<Fun> funs;
+
+precedence left OR;
+precedence left AND;
+precedence nonassoc EQ, NE, GT, GE, LT, LE;
+precedence left PLUS, MINUS;
+precedence left TIMES, DIV, MOD;
+precedence nonassoc UMINUS;
+
+start with program;
+
+program ::=
+  funs:f                                    {: RESULT = new Program(loc(fxleft,fxright), f); :}
+;
+
+exp ::=
+  FBOOL:x                                   {: RESULT = new ExpBool(loc(xxleft,xxright), x); :}
+| FINT:x                                    {: RESULT = new ExpInt(loc(xxleft,xxright), x); :}
+| FSTRING:x                                 {: RESULT = new ExpString(loc(xxleft,xxright), x); :}
+| FREAL:x                                   {: RESULT = new ExpReal(loc(xxleft,xxright), x); :}
+| exp:x AND exp:y                           {: RESULT = new ExpBin(loc(xxleft,yxright), ExpBin.Operator.AND, x, y); :}
+| exp:x OR exp:y                            {: RESULT = new ExpBin(loc(xxleft,yxright), ExpBin.Operator.OR, x, y); :}
+| exp:x EQ exp:y                            {: RESULT = new ExpBin(loc(xxleft,yxright), ExpBin.Operator.EQ, x, y); :}
+| exp:x NE exp:y                            {: RESULT = new ExpBin(loc(xxleft,yxright), ExpBin.Operator.NE, x, y); :}
+| exp:x GT exp:y                            {: RESULT = new ExpBin(loc(xxleft,yxright), ExpBin.Operator.GT, x, y); :}
+| exp:x GE exp:y                            {: RESULT = new ExpBin(loc(xxleft,yxright), ExpBin.Operator.GE, x, y); :}
+| exp:x LT exp:y                            {: RESULT = new ExpBin(loc(xxleft,yxright), ExpBin.Operator.LT, x, y); :}
+| exp:x LE exp:y                            {: RESULT = new ExpBin(loc(xxleft,yxright), ExpBin.Operator.LE, x, y); :}
+| exp:x PLUS exp:y                          {: RESULT = new ExpBin(loc(xxleft,yxright), ExpBin.Operator.PLUS, x, y); :}
+| exp:x MINUS exp:y                         {: RESULT = new ExpBin(loc(xxleft,yxright), ExpBin.Operator.MINUS, x, y); :}
+| exp:x TIMES exp:y                         {: RESULT = new ExpBin(loc(xxleft,yxright), ExpBin.Operator.TIMES, x, y); :}
+| exp:x DIV exp:y                           {: RESULT = new ExpBin(loc(xxleft,yxright), ExpBin.Operator.DIV, x, y); :}
+| exp:x MOD exp:y                           {: RESULT = new ExpBin(loc(xxleft,yxright), ExpBin.Operator.MOD, x, y); :}
+| MINUS:m exp:x                             {: RESULT = new ExpMinus(loc(mxleft,xxright), x); :} %prec UMINUS
+| LPAREN:l exps:s RPAREN:r                  {: RESULT = new ExpSeq(loc(lxleft,rxright), s); :}
+| ID:v                                      {: RESULT = new ExpVar(loc(vxleft,vxright), v); :}
+| ID:v ASSIGN exp:e                         {: RESULT = new ExpAssign(loc(vxleft,exright), v, e); :}
+| LET:l ID:v EQ exp:i IN exp:b              {: RESULT = new ExpLet(loc(lxleft,bxright), v, i, b); :}
+| ID:f LPAREN exps:a RPAREN:r               {: RESULT = new ExpCall(loc(fxleft,rxright), f, a); :}
+| IF:i exp:t THEN exp:x ELSE exp:y          {: RESULT = new ExpCond(loc(ixleft,yxright), t, x, y); :}
+| WHILE:w exp:t DO exp:b                    {: RESULT = new ExpWhile(loc(wxleft,bxright), t, b); :}
+;
+
+exps ::=
+  /* empty */                               {: RESULT = List.empty(); :}
+| exp:x expsRest:xs                         {: RESULT = xs.prepend(x); :}
+;
+
+expsRest ::=
+  /* empty */                               {: RESULT = List.empty(); :}
+| COMMA exp:x expsRest:xs                   {: RESULT = xs.prepend(x); :}
+;
+
+funs ::=
+  /* empty */                               {: RESULT = List.empty(); :}
+| fun:x funs:xs                             {: RESULT = xs.prepend(x); :}
+;
+
+fun ::=
+  typeid:f LPAREN typeids:p RPAREN EQ exp:b {: RESULT = new Fun(loc(fxleft,bxright), f, p, b); :}
+;
+
+typeid ::=
+  typename:t ID:x                           {: RESULT = new TypeId(loc(txleft,xxright), t, x); :}
+;
+
+typeids ::=
+  /* empty */                               {: RESULT = List.empty(); :}
+| typeid:x typeidsRest:xs                   {: RESULT = xs.prepend(x); :}
+;
+
+typeidsRest ::=
+  /* empty */                               {: RESULT = List.empty(); :}
+| COMMA typeid:x typeidsRest:xs             {: RESULT = xs.prepend(x); :}
+;
+
+typename ::=
+  VOID                                      {: RESULT = TypeName.VOID; :}
+| BOOL                                      {: RESULT = TypeName.BOOL; :}
+| INT                                       {: RESULT = TypeName.INT; :}
+| REAL                                      {: RESULT = TypeName.REAL; :}
+| STRING                                    {: RESULT = TypeName.STRING; :}
+| FPRINT                                    {: RESULT = TypeName.FPRINT; :}
+| IMPORT                                    {: RESULT = TypeName.IMPORT; :}
+;
